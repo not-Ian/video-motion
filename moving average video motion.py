@@ -9,7 +9,7 @@ stockFootageDirectory = '../../DeepLearning\old deep learning files\DeepLearning
 # for imagePath in os.listdir(stockFootageDirectory)[0]:
 #     print(imagePath)
 
-testVideo = os.listdir(stockFootageDirectory)[1]
+testVideo = os.listdir(stockFootageDirectory)[4]
 # testVideo = "a-baseball-game-in-a-stadium-2430839.mp4"
 # testVideo = "a-busy-street-on-a-sunny-day-1625973.mp4"
 
@@ -21,42 +21,37 @@ frameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 frameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 numberOfFrames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
+
+print(testVideo)
+
 out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc(*'DIVX'), frameRate, (frameWidth, frameHeight))
 
 frameIndex = 0
-frameOffset = 1
+frameOffset = 2
 previousFrames = []
+# previousFrame = None
+ret = True
 
-ret = False
-
-while(ret):
+while(ret and frameIndex < 100):
     ret, currentFrame = cap.read()
         
     if (currentFrame is not None):
-        modifiedFrame = np.divide(currentFrame, 2)
-        previousFrames.append(modifiedFrame)
-
-        if (frameIndex >= frameOffset):
-            previousFrame = previousFrames.pop(0)
+        
+        if (len(previousFrames) == 0):
+            out.write(currentFrame)
+            previousFrames.append(currentFrame)
+        else:
+            previousFrame = np.divide(previousFrames[0], 2)
             previousFrame = -previousFrame + 127
             # np.divide(previousFrame, 2, dtype=np.float64)
+            modifiedFrame = np.divide(currentFrame, 2)
             addedFrames = np.add(modifiedFrame, previousFrame).astype(np.uint8)
             
-            # pixelsByChannel = np.sum(addedFrames, axis=-1)
-            # positivePixelsToHide = pixelsByChannel < (150 * 3) # This threshold is important
-            # positiveChannelsToHide = np.tile(np.expand_dims(positivePixelsToHide, 2), 3)
-            # negativePixelsToHide = pixelsByChannel < (80 * 3) # This threshold is important
-            # negativeChannelsToShow = np.tile(np.expand_dims(negativePixelsToHide, 2), 3)
-            # addedFrames[positiveChannelsToHide] = 0
-            
+            previousFrames.append(addedFrames)
             out.write(addedFrames)
-            
-            # maskedFrame = currentFrame
-            # maskedFrame[positiveChannelsToHide] = 0
-            # maskedFrame[negativeChannelsToShow] = currentFrame[negativeChannelsToShow]
-            # out.write(maskedFrame)
-        else:       
-            out.write(currentFrame)
+
+            if (len(previousFrames) > frameOffset):
+                previousFrames.pop(0)
         
     print(int(frameIndex / numberOfFrames * 100) / 100)
     frameIndex += 1
