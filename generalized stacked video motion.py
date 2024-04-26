@@ -22,40 +22,35 @@ print(testVideo, numberOfFrames)
 
 out = cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc(*'DIVX'), frameRate, (frameWidth, frameHeight))
 
+
+def mergeFrames(out, currentLayerSchema, currentFrame):
+    currentLayerSchema[1].append(currentFrame)
+    
+    if (len(currentLayerSchema[1]) > currentLayerSchema[0]):
+        previousFrame = np.divide(currentLayerSchema[1].pop(0), 2)
+        previousFrame = -previousFrame + 127
+        
+        modifiedFrame = np.divide(currentFrame, 2)
+        addedFrame = np.add(modifiedFrame, previousFrame).astype(np.uint8)
+                
+        if (len(currentLayerSchema) == 3):
+            currentLayerSchema = currentLayerSchema[2]
+            mergeFrames(out, currentLayerSchema, addedFrame)
+        else:
+            out.write(addedFrame)
+    else:       
+        out.write(currentFrame)
+
+    
 frameIndex = 0
-frameOffset = 1
-previousFrames = []
-addedFrames = []
-# previousFrame = None
+currentLayerSchema = (1, [], (1, [], (1, [])))
 ret = True
 
 while(ret):
     ret, currentFrame = cap.read()
         
     if (currentFrame is not None):
-        modifiedFrame = np.divide(currentFrame, 2)
-        previousFrames.append(modifiedFrame)
-
-        if (frameIndex >= frameOffset):
-            previousFrame = previousFrames.pop(0)
-            previousFrame = -previousFrame + 127
-            # np.divide(previousFrame, 2, dtype=np.float64)
-            addedFrame = np.add(modifiedFrame, previousFrame).astype(np.uint8)
-                        
-            addedFrames.append(addedFrame)
-            
-            if (len(addedFrames) == 2):
-                previousFrame = np.divide(addedFrames.pop(0), 2)
-                previousFrame = -previousFrame + 127
-
-                modifiedFrame = np.divide(addedFrames[0], 2)
-                addedFrame = np.add(modifiedFrame, previousFrame).astype(np.uint8)
-            
-                out.write(addedFrame)
-            else:
-                out.write(addedFrame)
-        else:       
-            out.write(currentFrame)
+        mergeFrames(out, currentLayerSchema, currentFrame)
         
     print(int(frameIndex / numberOfFrames * 100), "%")
     frameIndex += 1

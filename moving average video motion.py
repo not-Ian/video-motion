@@ -6,9 +6,6 @@ from PIL import Image
 target_size = (1080, 1080)
 stockFootageDirectory = '../../DeepLearning\old deep learning files\DeepLearning2020\datasets\stock_footage/'
 
-# for imagePath in os.listdir(stockFootageDirectory)[0]:
-#     print(imagePath)
-
 testVideo = os.listdir(stockFootageDirectory)[4]
 # testVideo = "a-baseball-game-in-a-stadium-2430839.mp4"
 # testVideo = "a-busy-street-on-a-sunny-day-1625973.mp4"
